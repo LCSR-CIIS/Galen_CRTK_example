@@ -73,7 +73,7 @@ git clone git@github.com:LCSR-CIIS/Galen_CRTK_example.git
 ```
 
 
-You can run the scipt with <namespace> as a option. Ex) /REMS/Research
+You can run the scipt with a namespace as a option. Ex) /REMS/Research
 ```
 python3 galen_crtk_teleop_example.py <namespace>
 ```
