@@ -29,13 +29,13 @@ class galen_crtk_teleop_example:
             rospy.init_node('galen_crtk_teleop_example', anonymous = True, log_level = rospy.WARN)
 
         print(rospy.get_caller_id() + ' -> configuring crtk_device_test for: ' + device_namespace)
+
         # populate this class with all the ROS topics we need
         self.crtk_utils = crtk.utils(self, device_namespace)
         self.crtk_utils.add_operating_state()
         self.crtk_utils.add_measured_cp()
         self.crtk_utils.add_measured_cf()
         self.crtk_utils.add_move_cp()
-        
 
         #############################
         # Parameters
@@ -67,13 +67,13 @@ class galen_crtk_teleop_example:
 
         self.running = True
         while (self.running):
-            print ('\n- q: quit\n- p: print position, velocity\n- t: position based teleop (10s)')
+            print ('\n- q: quit\n- p: print position of the robot\n- m: command robot to move(~60s)')
             answer = input('Enter your choice and [enter] to continue\n')
             if answer == 'q':
                 self.running = False
             elif answer == 'p':
                 self.run_print()
-            elif answer == 't':
+            elif answer == 'm':
                 self.run_move_cp()
             else:
                 print('Invalid choice\n')
