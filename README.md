@@ -8,11 +8,10 @@ Author: Hisashi Ishida (hishida3@jhu.edu)
 
 ## Create User account
 Please make sure to create your own account (standard), not admin user.
+You can create an account through `Settings` or the follwoing command from the sudo user account. 
 
 ```
 sudo adduser <username>
-sudo useradd -s /bin/bash -d /home/<username> -m -G sudo <username>
-sudo passwd <password>
 ```
 
 ## Clone CISST and CRTK repo 
