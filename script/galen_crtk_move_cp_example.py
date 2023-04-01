@@ -44,19 +44,27 @@ class galen_crtk_teleop_example:
 
         # Define Start position
         self.start_cp = PyKDL.Frame()
-        self.start_cp.p = self.measured_cp().p # Vector()
-        self.start_cp.M = self.measured_cp().M # self.start_cp.M.DoRotY(math.pi).DoRotX()
 
+        # Use the current postion to start the motion
+        # self.start_cp.p = self.measured_cp().p 
+        # self.start_cp.M = self.measured_cp().M 
+
+        # Command the starting the postion 
+        self.start_cp.p = PyKDL.Vector(653.9, 91.1, 403.58)
+        self.start_cp.M.DoRotY(math.pi/180.0 * 8.00)
+        self.start_cp.M.DoRotX(math.pi/180.0 * 21.27)
+
+        print(self.start_cp.M.GetEulerZYX())
         # for one trajectory
-        self.duration = 5 # 5 seconds
-        self.drill_motion= Vector(40., 0., 0.) # Move 4 cm along x-axis
-        self.z_motion= Vector(0., 0., -2.0) # Move - 0.2 cm along z-axis
+        self.duration = 10 # 10 seconds
+        self.drill_motion= PyKDL.Vector(40., 0., 0.) # Move 4 cm along x-axis
+        self.z_motion= PyKDL.Vector(0., 0., -2.0) # Move - 0.2 cm along z-axis
 
         # Transition to next motion
-        self.next_motion = Vector(-40., 20., 0.) # Move -4 cm along x-axis and 2 cm along y axis
+        self.next_motion = PyKDL.Vector(-40., -10., 0.) # Move -4 cm along x-axis and 1 cm along y axis
         self.samples = self.duration * self.rate
 
-        self.num_stroke = 4
+        self.num_stroke = 1
 
     # main loop
     def run(self):
@@ -92,27 +100,38 @@ class galen_crtk_teleop_example:
         goal_cp = PyKDL.Frame()
         goal_cp.p = self.start_cp.p
         goal_cp.M = self.start_cp.M # The robot will maintatin the rotation
+
+        self.move_cp(goal_cp).wait()
+
+        rospy.sleep(5.0)
         
-        for stroke in range(num_stroke):
-            # Start Drilling
-            goal_cp.p = goal_cp.p + self.z_motion
-            self.move_cp(goal).wait()
-            
-            # loop
-            for i in range(self.samples):
-                goal_cp.p = goal_cp.p + i/self.samples * self.drill_motion
-                self.move_cp(goal)
+        for stroke in range(self.num_stroke):
+            # Start Drilling (Move in 1 sec)
+            for i in range(self.rate):
+                goal_cp.p += self.z_motion/self.rate
+                self.move_cp(goal_cp)
                 rospy.sleep(1.0/self.rate)
+            
+            
+            # loop (complete in duration seconds)
+            for i in range(self.rate):
+                goal_cp.p += self.drill_motion/self.rate
+                self.move_cp(goal_cp)
+                rospy.sleep(self.duration/self.rate)
 
             # Ready for next motion
             goal_cp.p = goal_cp.p - self.z_motion
-            self.move_cp(goal).wait()
-
+            self.move_cp(goal_cp)
+            rospy.sleep(1.0)
             goal_cp.p = goal_cp.p + self.next_motion
-            self.move_cp(goal).wait()
+            self.move_cp(goal_cp)
+            rospy.sleep(1.0)
 
-            handle.wait() # wait 2 seconding for each motion
-            
+        # Go back to the original position
+        self.move_cp(self.start_cp)
+        
+        print("Drill Motion finished!!")
+
 
 # use the class now, i.e. main program
 if __name__ == '__main__':
@@ -122,7 +141,7 @@ if __name__ == '__main__':
         else:
             example = galen_crtk_teleop_example()
             example.configure(sys.argv[1])
-            example.run_move_cp()
+            example.run()
 
     except rospy.ROSInterruptException:
         pass
