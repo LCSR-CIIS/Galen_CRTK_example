@@ -15,6 +15,23 @@ sudo useradd -s /bin/bash -d /home/<username> -m -G sudo <username>
 sudo passwd <password>
 ```
 
+## Clone CISST and CRTK repo 
+Please follow the instructions on the JHU-Install.md (https://bitbucket.org/GalenRobotics/researchrepo/src/jhu-modern-cisst/JHU-Install.md) in the "jhu-modern-cisst" branch.
+
+### Source correct files
+Please source the correct folder to achieve system-wide availability of ROS and CRTK:
+```
+source /opt/ros/noetic/setup.bash 
+source ~/catkin_ws/devel/setup.bash 
+```
+
+Or you can also permanently add the install location in your .bashrc with the following command:
+```
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+echo "source ~/catkin_ws/devel/setup.bash " >> ~/.bashrc
+```
+
+
 ## Clone Galen code from the bitbucket
 ```
 git clone git@bitbucket.org:GalenRobotics/researchrepo.git
@@ -34,23 +51,8 @@ cmake ../source -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-DREGULAR_BUILD -D
 make -j4
 ```
 
-## Clone CRTK repo 
-Please follow the instructions on the JHU-Install.md (https://bitbucket.org/GalenRobotics/researchrepo/src/jhu-modern-cisst/JHU-Install.md) in the "jhu-modern-cisst" branch.
-
 
 ## How to run Galen in Research mode
-### Source correct files
-Please source the correct folder to achieve system-wide availability of ROS and CRTK:
-```
-source /opt/ros/noetic/setup.bash 
-source ~/catkin_ws/devel/setup.bash 
-```
-
-Or you can also permanently add the install location in your .bashrc with the following command:
-```
-echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
-echo "source ~/catkin_ws/devel/setup.bash " >> ~/.bashrc
-```
 ### Run Galen robot
 Open a terminal and command `roscore`.
 
@@ -63,17 +65,20 @@ cd build/devel/lib/REMS
 ./REMS
 ```
 
-Once the REMS GUI is open, press `TURN ON` and change the mode to `Research`.
+Once the REMS GUI is open, press `Robot Off` and change the mode to `Research`.
 You can check the rostopics by `rostopic list` and `rostopic echo /REMS/Research/measured_cp`.
 
 ## Clone this repository
 You can clone this repository by the following command:
 ```
 git clone git@github.com:LCSR-CIIS/Galen_CRTK_example.git
+cd Galen_CRTk_example
 ```
 
 
 You can run the scipt with a namespace as a option. Ex) /REMS/Research
 ```
-python3 galen_crtk_teleop_example.py <namespace>
+cd script
+python3 galen_crtk_move_cp_example.py <namespace>
 ```
+Press `m` and Press `Enter` to execute the drilling example.
