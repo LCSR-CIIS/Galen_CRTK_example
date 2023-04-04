@@ -75,7 +75,7 @@ if __name__ == '__main__':
         else:
             example = crtk_move_cp_example()
             example.configure(sys.argv[1])
-            example.run_move_cp()
+            example.run()
 
     except rospy.ROSInterruptException:
         pass
