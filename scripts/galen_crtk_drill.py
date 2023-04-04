@@ -6,8 +6,9 @@
 # Copyright (c) 2018-2023 Johns Hopkins University, University of Washington, Worcester Polytechnic Institute
 # Released under MIT License
 
-# To communicate with the Galen using ROS topics, run following command:
-# > rosrun galen_crtk_telop_example.py /REMS/Research
+# This scipt will command the Galen robot to perform multi-strokes drilling for CISII sound force project using CRTK commands.
+# Please make sure to set the Galen robot in "Research mode" and run this script
+# > python3 galen_crtk_drill.py /REMS/Research
 
 import crtk
 import math
@@ -91,27 +92,38 @@ class galen_crtk_teleop_example:
 
         goal_cp = PyKDL.Frame()
         goal_cp.p = self.start_cp.p
-        goal_cp.M = self.start_cp.M # The robot will maintatin the rotation
+        goal_cp.M = self.start_cp.M # The robot will maintatin the initial rotation
+
+        self.move_cp(goal_cp).wait()
+
+        rospy.sleep(5.0)
         
-        for stroke in range(num_stroke):
-            # Start Drilling
-            goal_cp.p = goal_cp.p + self.z_motion
-            self.move_cp(goal).wait()
-            
-            # loop
-            for i in range(self.samples):
-                goal_cp.p = goal_cp.p + i/self.samples * self.drill_motion
-                self.move_cp(goal)
+        for stroke in range(self.num_stroke):
+            # Start Drilling (Move in 1 sec)
+            for i in range(self.rate):
+                goal_cp.p += self.z_motion/self.rate
+                self.move_cp(goal_cp)
                 rospy.sleep(1.0/self.rate)
+            
+            
+            # loop (complete in duration seconds)
+            for i in range(self.rate):
+                goal_cp.p += self.drill_motion/self.rate
+                self.move_cp(goal_cp)
+                rospy.sleep(self.duration/self.rate)
 
             # Ready for next motion
             goal_cp.p = goal_cp.p - self.z_motion
-            self.move_cp(goal).wait()
-
+            self.move_cp(goal_cp)
+            rospy.sleep(1.0)
             goal_cp.p = goal_cp.p + self.next_motion
-            self.move_cp(goal).wait()
+            self.move_cp(goal_cp)
+            rospy.sleep(1.0)
 
-            handle.wait() # wait 2 seconding for each motion
+        # Go back to the original position
+        self.move_cp(self.start_cp)
+        
+        print("Drill Motion finished!!")
             
 
 # use the class now, i.e. main program
