@@ -1,4 +1,4 @@
-# How to command the Galen robot with CRTK compatible commands
+# How to control the Galen robot with CRTK compatible commands
 
 This README covers from creating your own account and moving the Galen robot.
 
