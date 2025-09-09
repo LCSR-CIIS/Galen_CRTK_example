@@ -21,6 +21,8 @@ import rospy
 import numpy
 import PyKDL
 
+from pathlib import Path
+from typing import List
 
 # example of application using device.py
 class crtk_move_cp_example:
@@ -39,6 +41,33 @@ class crtk_move_cp_example:
         self.crtk_utils.add_measured_cp()
         self.crtk_utils.add_move_cp()
         self.ral.check_connections()
+        self.tracjectory =[]
+
+    def load_trajectory(self, file_path: Path):
+        """
+        Load poses.txt produced by the extractor scripts.
+        Returns:
+        - frame (PyKDL.Frame)
+        """
+
+        path = Path(file_path)
+        # Read all lines, split last column (frame_id) safely even if empty
+        with path.open("r") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                parts = line.rstrip("\n").split(" ")
+                # Expect at least 10 tokens: sec nsec x y z qx qy qz qw (frame_id optional but we write it)
+                if len(parts) < 10:
+                    raise ValueError(f"Malformed line (need >=10 columns): {line}")
+                sec  = int(parts[0]); nsec = int(parts[1])
+                x,y,z = map(float, parts[2:5])
+                qx,qy,qz,qw = map(float, parts[5:9])
+                frame_id = " ".join(parts[9:])  # allow spaces in frame_id just in case
+                frame = PyKDL.Frame()
+                frame.p = (x, y, z)
+                self.tracjectory.append(frame)
+
 
     def run_move_cp(self):
         # Not yet implemented for Galen robot
@@ -46,39 +75,9 @@ class crtk_move_cp_example:
         #     print("Unable to enable the device, make sure it is connected.")
         #     return
         # to force creating an initial setpoint but Galen should really be computing this based on last setpoint_jp
-        print('initializing setpoint_cp from measured_cp')
-        self.move_cp(self.measured_cp()).wait()
-        # time.sleep(1.0)
-
-        # create a new goal starting with current position
-        start_cp = PyKDL.Frame()
-        start_cp.p = self.measured_cp().p
-        start_cp.M = self.measured_cp().M
-        goal = PyKDL.Frame()
-        amplitude = 20.0 # 2 centimeters
-
-        # first move
-        goal.p[0] = start_cp.p[0] + amplitude
-        goal.p[1] = start_cp.p[1] + amplitude
-        goal.p[2] = start_cp.p[2]
-
-        self.move_cp(goal).wait()
-        print('first move initiated')
-        print('first move completed')
-
         
-        # second move
-        goal.p[0] = start_cp.p[0] - amplitude
-        goal.p[1] = start_cp.p[1] - amplitude
-        print('initiating second move')
-        self.move_cp(goal).wait()
-        print('second move completed')
-        # back to starting point
-        goal.p[0] = start_cp.p[0]
-        goal.p[1] = start_cp.p[1]
-        print('initiating third move')
-        self.move_cp(goal).wait()
-        print('third move completed')
+        for goal in self.tracjectory:
+            self.move_cp(goal).wait()
 
 # use the class now, i.e. main program
 if __name__ == '__main__':
